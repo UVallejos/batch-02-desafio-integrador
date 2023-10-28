@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {IUniSwapV2Router02} from "./Interfaces.sol";
 import {IUniswapV2Factory} from "./Interfaces.sol";
 
@@ -12,8 +13,11 @@ contract LiquidityProvider {
     address factoryAddress = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
     IUniswapV2Factory factory = IUniswapV2Factory(factoryAddress);
 
-    IERC20 tokenUSDCBTKN = IERC20(0xAfD52B000B5f6bB5d5C908124A25C3068a323507);
-    IERC20 tokenUSDC = IERC20(0xD2DaFbF611e8a66237F2a08A97d15512003371D1);
+    address bbtkn = 0x9D0811F7753e6fB442c57d54A4E82E8Fb406a0dB;
+    address usdc = 0xEfB83Efa68177627E1191c2391A9E04cF9B4fe59;
+
+    IERC20Upgradeable tokenBTKN = IERC20Upgradeable(bbtkn);
+    IERC20 tokenUSDC = IERC20(usdc);
 
     event LiquidityAddres(
         uint256 amountA,
@@ -22,7 +26,7 @@ contract LiquidityProvider {
     );
 
     function addLiquidity(
-        address _tokenUSDCBTKN,
+        address _tokenBTKN,
         address _tokenUSDC,
         uint _amountADesired,
         uint _amountBDesired,
@@ -31,14 +35,12 @@ contract LiquidityProvider {
         address _to,
         uint _deadline
     ) public {
-        tokenUSDCBTKN.approve(routerAddress, _amountADesired);
-        tokenUSDC.approve(routerAddress, _amountBDesired);
 
         uint256 amountA;
         uint256 amountB;
         uint256 amountLP;
         (amountA, amountB, amountLP) = router.addLiquidity(
-            _tokenUSDCBTKN,
+            _tokenBTKN,
             _tokenUSDC,
             _amountADesired,
             _amountBDesired,

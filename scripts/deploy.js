@@ -80,18 +80,25 @@ async function addLiquidity() {
   var tokenA = TokenA.attach(tokenAAdd);
 
   var tokenBAdd = "0xEfB83Efa68177627E1191c2391A9E04cF9B4fe59";
-  var TokenB = await deploySC("BitesToken");
+  var TokenB = await ethers.getContractFactory("USDCoin");
   var tokenB = TokenB.attach(tokenBAdd);
 
-  var loquidityProviderAdd = "0xf98964C48d0B8687cF19b5e3D5e372d02DFCac62";
+  var loquidityProviderAdd = "0x71CCf8c881ee48a61b0b02a2d5A4856B88FB6624";
   var LiquidityProv = await ethers.getContractFactory("LiquidityProvider");
   var liquidityProv = LiquidityProv.attach(loquidityProviderAdd);
-  
-  var tx = await tokenA.connect(owner[0]).transfer(loquidityProviderAdd, pEth("1000000"));
-  await tx.wait();
-  
- 
 
+  //Aprove Contract
+  await tokenA.connect(owner[0]).trasfer(loquidityProviderAdd, pEth("1000000"));
+  await tokenB.connect(owner[0]).approve(loquidityProviderAdd, pEth("500000"));
+  
+
+  /*
+  */  
+
+  //await tokenA.connect(owner[0]).transfer(loquidityProviderAdd, pEth("1000000"));
+  //await tokenB.connect(owner[0]).transfer(loquidityProviderAdd, pEth("500000"));
+ 
+  /*
   var _tokenA = tokenAAdd;
   var _tokenB = tokenBAdd;
   var _amountADesired = pEth("1000000");
@@ -113,7 +120,7 @@ async function addLiquidity() {
   );
   var res = await tx.wait();
   console.log(`Hash de la transaction ${res.hash}`);
-  /**/
+  */
 }
 
 

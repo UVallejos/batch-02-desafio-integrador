@@ -124,11 +124,10 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
     //-transfiere el excedente de USDC a msg.sender
      
     function purchaseWithUSDC(uint256 _id, uint256 _amountIn) external validateRange(_id, 0, 699) validateMintNft(_id) {
-        uint256 priceNFT = getPriceForId(_id);
+        uint256 priceNftInBBTKN = getPriceForId(_id);
         uint256 amountInCopy = _amountIn;
         uint256 copyId = _id;
-   
-        uint256 priceNftInBBTKN = getPriceForId(_id);
+
         (uint256 reserveBBTKN, uint256 reserveUSDC, uint256 timeStamp) = router.getReserves();
 
         uint256 usdcForSale = router.getAmountIn(
@@ -164,7 +163,7 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
         //Agregamos al registro de NFTs comprados
         createdNFTs[copyId] = infoNFT({
             owner: msg.sender, 
-            price: priceNFT
+            price: priceNftInBBTKN
         });
 
         emit PurchaseNftWithId(msg.sender, copyId);
