@@ -17,7 +17,7 @@ var startDate = 1696032000;
 describe("Pruebas Public Sales", function () {
 
       async function loadPublicSales() {
-        var { BitesToken, alice, implementationAddress } = await loadFixture(loadBBTK);
+        var { BBitesToken, alice, implementationAddress } = await loadFixture(loadBBTK);
 
         // consultar una lista de signers de prueba
         // estos signers se pueden convertir en msg.sender en el contrato
@@ -45,22 +45,22 @@ describe("Pruebas Public Sales", function () {
         var [alice] = await ethers.getSigners();
     
         // creando una referencia del contrato inteligente
-        var BitesToken = await ethers.getContractFactory("BitesToken");
+        var BBitesToken = await ethers.getContractFactory("BBitesToken");
     
         //Creando proxy del contrato
-        BitesToken = await hre.upgrades.deployProxy(BitesToken, {
+        BBitesToken = await hre.upgrades.deployProxy(BBitesToken, {
           kind: "uups",
         });
 
         //
         var implementationAddress =
         await hre.upgrades.erc1967.getImplementationAddress(
-          BitesToken.target
+          BBitesToken.target
         );
 
-        BitesToken.grantRole("MINTER_ROLE", alice.address)
+        BBitesToken.grantRole("MINTER_ROLE", alice.address)
     
-        return { BitesToken, alice, implementationAddress};
+        return { BBitesToken, alice, implementationAddress};
       }
 
       async function loadUSDC() {
@@ -82,14 +82,14 @@ describe("Pruebas Public Sales", function () {
     describe ("Desplegar y probar mint de BBTKN y USDC", () => {
     
       it("Se publicó sin errores BBTK y mintea un MINTER_ROLE", async () => {
-          var { BitesToken, alice } = await loadFixture(loadBBTK);
+          var { BBitesToken, alice } = await loadFixture(loadBBTK);
           var amount = 10000;
     
-          await BitesToken.connect(alice);
+          await BBitesToken.connect(alice);
                 
-          var tx = await BitesToken.mint(await alice.getAddress(), amount);
+          var tx = await BBitesToken.mint(await alice.getAddress(), amount);
     
-          await expect(tx).changeTokenBalance(BitesToken, await alice.getAddress(),
+          await expect(tx).changeTokenBalance(BBitesToken, await alice.getAddress(),
               amount
             );
                 
@@ -183,12 +183,12 @@ describe("Pruebas Public Sales", function () {
 
         it("Compra Correcta purchaseWithTokens BBTKM", async () => {
         var { publicSale, owner } = await loadFixture(loadPublicSales);  
-        var { BitesToken, alice } = await loadFixture(loadBBTK);
+        var { BBitesToken, alice } = await loadFixture(loadBBTK);
             
         //Mintear BBTKN
         var amount = 10000;
 
-        await BitesToken.mint(await alice.getAddress(), amount);
+        await BBitesToken.mint(await alice.getAddress(), amount);
             
         var id = 1;
              
@@ -198,12 +198,12 @@ describe("Pruebas Public Sales", function () {
 
         it("Comprando con ID Fuera de Rango BBTKN", async () => {
           var { publicSale, owner } = await loadFixture(loadPublicSales);  
-          var { BitesToken, alice } = await loadFixture(loadBBTK);
+          var { BBitesToken, alice } = await loadFixture(loadBBTK);
               
           //Mintear BBTKN
           var amount = 10000;
   
-          await BitesToken.mint(await alice.getAddress(), amount);
+          await BBitesToken.mint(await alice.getAddress(), amount);
               
           var id = 2001;
               
@@ -216,7 +216,7 @@ describe("Pruebas Public Sales", function () {
 
         it("Comprando con ID ya minteado BBTKN", async () => {
           var { publicSale, owner } = await loadFixture(loadPublicSales);  
-          var { BitesToken, alice } = await loadFixture(loadBBTK);
+          var { BBitesToken, alice } = await loadFixture(loadBBTK);
           var [bob] = await ethers.getSigners();
 
           //Mintear BBTKN
@@ -225,7 +225,7 @@ describe("Pruebas Public Sales", function () {
           var id = 1;
           
           //Alice Transfiere BBTK a bob para que comre
-          await BitesToken.mint(await alice.getAddress(), amount);
+          await BBitesToken.mint(await alice.getAddress(), amount);
 
           await publicSale.connect(alice).purchaseWithTokens(id);
           var tx = await publicSale.connect(bob).purchaseWithTokens(id);
@@ -236,7 +236,7 @@ describe("Pruebas Public Sales", function () {
 
         it("Sin saldo Suficientes de BBTKN", async () => {
           var { publicSale, owner } = await loadFixture(loadPublicSales);  
-          var { BitesToken, alice } = await loadFixture(loadBBTK);
+          var { BBitesToken, alice } = await loadFixture(loadBBTK);
           var [bob] = await ethers.getSigners();
 
           //Mintear BBTKN
@@ -244,7 +244,7 @@ describe("Pruebas Public Sales", function () {
           var id = 1;
           
           //Alice Transfiere BBTK a bob para que comre
-          await BitesToken.mint(await alice.getAddress(), amount);
+          await BBitesToken.mint(await alice.getAddress(), amount);
 
           
           var tx = await publicSale.connect(alice).purchaseWithTokens(id);
@@ -266,7 +266,7 @@ describe("Pruebas Public Sales", function () {
       //Mintear BBTKN
       var amount = 10000;
 
-      await BitesToken.mint(await alice.getAddress(), amount);
+      await BBitesToken.mint(await alice.getAddress(), amount);
           
       var id = 1;
            
@@ -281,7 +281,7 @@ describe("Pruebas Public Sales", function () {
         //Mintear BBTKN
         var amount = 10000;
 
-        await BitesToken.mint(await alice.getAddress(), amount);
+        await BBitesToken.mint(await alice.getAddress(), amount);
             
         var id = 2001;
             
@@ -303,7 +303,7 @@ describe("Pruebas Public Sales", function () {
         var id = 1;
         
         //Alice Transfiere BBTK a bob para que comre
-        await BitesToken.mint(await alice.getAddress(), amount);
+        await BBitesToken.mint(await alice.getAddress(), amount);
 
         await publicSale.connect(alice).purchaseWithTokens(id);
         var tx = await publicSale.connect(bob).purchaseWithTokens(id);
@@ -322,7 +322,7 @@ describe("Pruebas Public Sales", function () {
         var id = 1;
         
         //Alice Transfiere BBTK a bob para que comre
-        await BitesToken.mint(await alice.getAddress(), amount);
+        await BBitesToken.mint(await alice.getAddress(), amount);
 
         
         var tx = await publicSale.connect(alice).purchaseWithTokens(id);
@@ -362,7 +362,7 @@ describe("Pruebas Public Sales", function () {
       
       it("Comprando con ID ya minteado purchaseWithEtherAndId ETH", async () => {
         var { publicSale, owner } = await loadFixture(loadPublicSales);
-        var { BitesToken, alice } = await loadFixture(loadBBTK);
+        var { BBitesToken, alice } = await loadFixture(loadBBTK);
         var [bob] = await ethers.getSigners();
 
         var valueETH = ethers.parseEther("0.01");;

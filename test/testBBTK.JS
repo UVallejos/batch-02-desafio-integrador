@@ -20,19 +20,19 @@ describe("Pruebas Tokens", () => {
     var [owner, alice, bob, carl] = await ethers.getSigners();
 
     // creando una referencia del contrato inteligente
-    var BitesToken = await ethers.getContractFactory("BitesToken");
+    var BBitesToken = await ethers.getContractFactory("BBitesToken");
 
     //Creando proxy del contrato
-    BitesToken = await hre.upgrades.deployProxy(BitesToken, {
+    BBitesToken = await hre.upgrades.deployProxy(BBitesToken, {
       kind: "uups",
     });
     
     //var [owner, alice] = await ethers.getSigners();
-    //await BitesToken.mint(alice.address, 1000000000);
-    //var balanceAlice = await BitesToken.balanceOf(alice.address);
+    //await BBitesToken.mint(alice.address, 1000000000);
+    //var balanceAlice = await BBitesToken.balanceOf(alice.address);
     //console.log(balanceAlice);
 
-    return { BitesToken, owner, alice, bob, carl };
+    return { BBitesToken, owner, alice, bob, carl };
   }
 
   async function loadUSDC() {
@@ -51,9 +51,9 @@ describe("Pruebas Tokens", () => {
   describe("Verificar Cantidad de BBTK Del Owner", () => {
     it("Se publicó sin errores y con valores correctos", async () => {
       // cargando los contratos
-      var { BitesToken, owner } = await loadFixture(loadBBTK);
+      var { BBitesToken, owner } = await loadFixture(loadBBTK);
       
-      var balanceOwner = await BitesToken.balanceOf(owner.address);
+      var balanceOwner = await BBitesToken.balanceOf(owner.address);
       
       console.log(balanceOwner);
       

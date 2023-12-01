@@ -3,6 +3,7 @@ const keccak256 = require("keccak256");
 const { ethers } = require("hardhat");
 const walletAndIds = require("../wallets/walletList");
 
+var merkleTree, root;
 
 function hashToken(id, address) {
   return Buffer.from(
@@ -13,8 +14,23 @@ function hashToken(id, address) {
   );
 }
 
-var merkleTree, root;
 
+function getRootFromMT() {
+  var elementosHasheados = walletAndIds.map(({ id, address }) => {
+    return hashToken(id, address);
+  });
+
+  merkleTree = new MerkleTree(elementosHasheados, keccak256, {
+    sortPairs: true,
+  }); 
+  //Raiz de MerkelTree = 0x84bf1b2f55bd29c09b994e045d5e08c98e0a304b152696041b4443941ad8e8b7;
+  return merkleTree.getHexRoot();
+}
+
+
+
+
+/*
 function construyendoMerkleTree() {
 
   var elementosHasheados = walletAndIds.map(({ id, address }) => {
@@ -24,12 +40,10 @@ function construyendoMerkleTree() {
   merkleTree = new MerkleTree(elementosHasheados, keccak256, {
     sortPairs: true,
   }); 
-
-  root = merkleTree.getHexRoot();
-
   //Raiz de MerkelTree = 0x84bf1b2f55bd29c09b994e045d5e08c98e0a304b152696041b4443941ad8e8b7;
-  console.log(root);
+  return merkleTree.getHexRoot();
 }
+
 
 var hasheandoElemento, pruebas;
 function construyendoPruebas() {
@@ -44,13 +58,12 @@ function construyendoPruebas() {
   console.log(pertenece);
 }
 
+*/
 
-function getRootFromMT() {
-  return "";
-}
 
-construyendoMerkleTree();
-construyendoPruebas();
-//module.exports = { getRootFromMT };
+
+//construyendoMerkleTree();
+//construyendoPruebas();
+module.exports = { getRootFromMT };
 
 

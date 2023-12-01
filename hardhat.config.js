@@ -7,7 +7,12 @@ module.exports = {
   solidity: "0.8.19",
   networks: {
     localhost: {
-      url: "http://127.0.0.1:8545",
+      url: "http://localhost:8545",
+    },
+    hardhat: {
+      forking: {
+        url: process.env.GOERLI_TESNET_URL
+      }
     },
     mumbai: {
       url: process.env.MUMBAI_TESNET_URL,

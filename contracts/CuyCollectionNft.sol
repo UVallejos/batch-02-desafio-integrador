@@ -2,14 +2,14 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-contract CuyCollection is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable, UUPSUpgradeable {
+contract CuyCollection is Initializable, ERC721Upgradeable, PausableUpgradeable, AccessControlUpgradeable, ERC721BurnableUpgradeable, UUPSUpgradeable {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -58,7 +58,7 @@ contract CuyCollection is Initializable, ERC721Upgradeable, ERC721PausableUpgrad
     function safeMint(
         address _to,
         uint256 _tokenId
-    ) public onlyRole(MINTER_ROLE) {
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
         require(_tokenId >= 0 && _tokenId <= 999, "ID Invalido");
         require(minted[_tokenId] == false, "ID no Disponible");
         _safeMint(_to, _tokenId);
@@ -73,7 +73,7 @@ contract CuyCollection is Initializable, ERC721Upgradeable, ERC721PausableUpgrad
         address _to,
         uint256 _tokenId,
         bytes32[] calldata _proofs
-    ) public {
+    ) public whenNotPaused {
         require(verify(_hashearInfo(_to, _tokenId), _proofs),"No eres parte de la WhiteList");
         _safeMint(_to, _tokenId);
         minted[_tokenId] = true;
@@ -101,11 +101,13 @@ contract CuyCollection is Initializable, ERC721Upgradeable, ERC721PausableUpgrad
         _unpause();
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize) 
-    internal virtual  override(
-            ERC721Upgradeable, 
-            ERC721PausableUpgradeable) {}
-
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+        internal
+        whenNotPaused
+        override
+    {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    }
 
     // The following functions are overrides required by Solidity.
     function supportsInterface(bytes4 interfaceId)
@@ -134,7 +136,7 @@ contract CuyCollection is Initializable, ERC721Upgradeable, ERC721PausableUpgrad
         return MerkleProof.verify(proofs, root, leaf);
     }
 
-    function actualizarRaiz(bytes32 _root) public onlyRole(MINTER_ROLE){
+    function actualizarRoot(bytes32 _root) public onlyRole(MINTER_ROLE){
         root = _root;
     }
 }

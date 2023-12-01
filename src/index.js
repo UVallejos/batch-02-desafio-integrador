@@ -1,7 +1,7 @@
 import { Contract, ethers } from "ethers";
 
 import usdcTknAbi from "../artifacts/contracts/USDCoin.sol/USDCoin.json";
-// import bbitesTokenAbi
+// import BBitesTokenAbi
 // import publicSaleAbi
 // import nftTknAbi
 

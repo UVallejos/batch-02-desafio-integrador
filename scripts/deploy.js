@@ -36,21 +36,21 @@ async function deployGoerli() {
   var relAddGoerli; // relayer goerli
 
   //Contrato de Tokens a publicar
-  var BitesToken = "BitesToken";
+  var BBitesToken = "BBitesToken";
   var usdcToken = "USDCoin";
 
   //Dirección Proxy de los conratos Actualizables
-  var proxyContractBBTK = await deploySC(BitesToken);
+  var proxyContractBBTK = await deploySC(BBitesToken);
   
   //Desplegamos contrato no actualizable
   var deployUSDC = await deploySCNoUp(usdcToken);
   var addressUSDC = await deployUSDC.getAddress();
 
   //Dirección de implementación de los contratos Actualizables
-  var impBBTK = await printAddress(BitesToken, await proxyContractBBTK.getAddress());
+  var impBBTK = await printAddress(BBitesToken, await proxyContractBBTK.getAddress());
 
   //Verificamos los contratos
-  verify(impBBTK, BitesToken);
+  verify(impBBTK, BBitesToken);
   console.log("\n");
   verify(addressUSDC, usdcToken);
 
@@ -76,7 +76,7 @@ async function addLiquidity() {
   var [owner] = await ethers.getSigners();
   
   var tokenAAdd = "0x9D0811F7753e6fB442c57d54A4E82E8Fb406a0dB";
-  var TokenA = await ethers.getContractFactory("BitesToken");
+  var TokenA = await ethers.getContractFactory("BBitesToken");
   var tokenA = TokenA.attach(tokenAAdd);
 
   var tokenBAdd = "0xEfB83Efa68177627E1191c2391A9E04cF9B4fe59";

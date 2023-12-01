@@ -4,11 +4,11 @@ pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IUniSwapV2Router02} from "./Interfaces.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IUniSwapV2Router02} from "./Interfaces.sol";
 
 
 /**
@@ -36,8 +36,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     IUniSwapV2Router02 router;
-    IERC20Upgradeable bbToken;
     IERC20 usdCoin;
+    IERC20Upgradeable bbToken;
+    
 
     //Struct que Almacena el propietario de un NFT y el precio de compra en BBTK
     struct infoNFT {
@@ -80,6 +81,7 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
         bbToken = IERC20Upgradeable(_bbtkn);
         usdCoin = IERC20(_usdCoin);
         router = IUniSwapV2Router02(_router);
+        
     }
 
     //Verifica que este en un rango permitido de Compra
@@ -103,9 +105,6 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
         //Precio del NFT por la id introducida
         uint256 priceNFT = getPriceForId(_id);
 
-        //Verificamos que el sender tiene balance suficiente
-        require(bbToken.balanceOf(msg.sender) >= priceNFT, "No tienes suficientes BBTKN para Comprar");
-
         //Transferimos tokens al contrato
         require(bbToken.transferFrom(msg.sender, address(this), priceNFT), "Ha ocurrido un error en el Compra");
 
@@ -123,50 +122,40 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
     //-llama a swapTokensForExactTokens: valor de retorno de este metodo es cuanto gastaste del token input
     //-transfiere el excedente de USDC a msg.sender
      
-    function purchaseWithUSDC(uint256 _id, uint256 _amountIn) external validateRange(_id, 0, 699) validateMintNft(_id) {
-        uint256 priceNftInBBTKN = getPriceForId(_id);
-        uint256 amountInCopy = _amountIn;
-        uint256 copyId = _id;
-
-        (uint256 reserveBBTKN, uint256 reserveUSDC, uint256 timeStamp) = router.getReserves();
-
-        uint256 usdcForSale = router.getAmountIn(
-            priceNftInBBTKN,
-            reserveBBTKN,
-            reserveUSDC
-        );
-
-        require(usdcForSale >= amountInCopy, "Valor Insuficientes de USDC para Comprar");
+    function purchaseWithUSDC(uint256 _id, uint _amountIn) validateRange(_id, 0, 699) validateMintNft(_id) external  {
+        
+        uint priceNFT = getPriceForId(_id);
 
         //transfiere _amountIn de USDC a este contrato
-        require(usdCoin.transferFrom(msg.sender, address(this), amountInCopy), "Ha ocurrido un error en la transferencia de USDC");
-
+        usdCoin.transferFrom(msg.sender, address(this), _amountIn);
+        
         //Aprove al router
-        usdCoin.approve(address(router), amountInCopy);
+        usdCoin.approve(address(router), _amountIn);
 
         //Swap USDC a BBTKN 
         address[] memory tokens = new address[](2);
         tokens[0] = address(usdCoin);
         tokens[1] = address(bbToken);
 
-        uint256[] memory _amounts = router.swapTokensForExactTokens(
-            usdcForSale, 
-            amountInCopy, 
-            tokens, 
-            address(this), 
-            block.timestamp + 300);
+        uint[] memory _amounts = router.swapTokensForExactTokens(
+            priceNFT,
+            _amountIn,
+            tokens,
+            address(this),
+            block.timestamp + 60000
+        );
 
-        if(_amounts[0] < amountInCopy){
-            require(usdCoin.transfer(msg.sender, amountInCopy - _amounts[1]), "Error en transferencia de Vuelto");
+        if(_amountIn > _amounts[0]){
+           usdCoin.transfer(msg.sender, _amountIn - _amounts[0]);
         }
 
         //Agregamos al registro de NFTs comprados
-        createdNFTs[copyId] = infoNFT({
+        createdNFTs[_id] = infoNFT({
             owner: msg.sender, 
-            price: priceNftInBBTKN
+            price: priceNFT
         });
 
-        emit PurchaseNftWithId(msg.sender, copyId);
+        emit PurchaseNftWithId(msg.sender, _id);
 
     }
 
@@ -195,7 +184,7 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
 
     function depositEthForARandomNft() public payable{
         //Verificamos cantidad de Ether enviado
-        require(msg.value >= 0.01 ether, "Cantidad Insuficiente de Ether para Comprar");
+        require(msg.value == 0.01 ether, "Cantidad Incorrecta de Ether para Comprar");
 
         //Obtenemos número de ID aleatorio
         uint256 aleatorioID;
@@ -236,6 +225,17 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
         require(bbToken.transfer(msg.sender, bbtknBalance), "Transferencia BBTKN Fallida");
     }
 
+    function getRouterAddress() public view returns (address) {
+        return address(router);
+    }
+
+    function getUSDCAddress() public view returns (address){
+        return address(usdCoin);
+    }
+
+    function getTokenAddress() public view returns (address){
+        return address(bbToken);
+    }
 
     receive() external payable {
         depositEthForARandomNft();
@@ -245,19 +245,22 @@ contract PublicSale is Initializable, PausableUpgradeable, AccessControlUpgradea
     /////////                    Helper Methods                    /////////
     ////////////////////////////////////////////////////////////////////////
 
-    function getPriceForId(uint256 _id) public view returns(uint256){
-        uint256 priceToken;
+    function getPriceForId(uint _id) public view returns(uint){
+        uint priceToken;
 
         if (_id >= 0 && _id <= 199){
             priceToken = 1000 * 10 ** 18;
         } else if(_id >= 200 && _id <= 499){
             priceToken = _id * 20 * 10 ** 18;
         } else if(_id >= 500 && _id <= 699){
-            uint256 _priceBase = 10_000;
-            uint256 _uploadEveryDay = (block.timestamp - startDate) / 86400;
+            uint _priceBase = 10_000;
+            uint _uploadEveryDay = (block.timestamp - startDate) / 86400;
             priceToken = _priceBase + _uploadEveryDay * 20_000;
             priceToken *= 10 ** 18;
             priceToken = priceToken <= MAX_PRICE_NFT ? priceToken : MAX_PRICE_NFT;
+        }
+        else{
+            revert("ID fuera de Rango");
         }
         return priceToken;
     }
